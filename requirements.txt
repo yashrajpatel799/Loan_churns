@@ -1,5 +1,6 @@
 streamlit
 pandas
 numpy
-scikit-learn==1.2.2   ← (example, use YOUR version)
+scikit-learn==1.4.2   ← (example, use YOUR version)
 joblib
+pickel
