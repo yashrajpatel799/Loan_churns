@@ -1,11 +1,27 @@
 import streamlit as st
 import pandas as pd
-import joblib
+import pickle
+import os
 
 # -------------------------------
-# Page Config
+# Page Config (must be first Streamlit command)
 # -------------------------------
 st.set_page_config(page_title="Churn Prediction", layout="centered")
+
+# -------------------------------
+# Debug: Check files (optional)
+# -------------------------------
+st.write("Files in directory:", os.listdir())
+
+# -------------------------------
+# Load Model (ONLY ONCE)
+# -------------------------------
+try:
+    with open("model.pkl", "rb") as f:
+        model = pickle.load(f)
+except Exception as e:
+    st.error(f"Error loading model: {e}")
+    st.stop()
 
 # -------------------------------
 # Custom CSS (Advanced UI)
@@ -16,17 +32,11 @@ body {
     background: linear-gradient(135deg, #1f4037, #99f2c8);
 }
 
-.main {
-    background-color: rgba(0,0,0,0);
-}
-
-/* Title */
 .title {
     text-align: center;
     font-size: 42px;
     font-weight: bold;
     color: white;
-    margin-bottom: 5px;
 }
 
 .subtitle {
@@ -35,7 +45,6 @@ body {
     margin-bottom: 30px;
 }
 
-/* Card */
 .card {
     background: white;
     padding: 25px;
@@ -44,7 +53,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Button */
 .stButton>button {
     width: 100%;
     background: linear-gradient(90deg, #00c6ff, #0072ff);
@@ -59,7 +67,6 @@ body {
     background: linear-gradient(90deg, #0072ff, #00c6ff);
 }
 
-/* Result */
 .success-box {
     background-color: #28a745;
     color: white;
@@ -79,11 +86,6 @@ body {
 }
 </style>
 """, unsafe_allow_html=True)
-
-# -------------------------------
-# Load Model
-# -------------------------------
-model = joblib.load("model.pkl")
 
 # -------------------------------
 # Header
@@ -106,10 +108,7 @@ with col1:
 
 with col2:
     geography = st.selectbox("Geography", ["France", "Spain", "Germany"])
-
-    # ✅ Gender Dropdown (as you requested)
     gender = st.selectbox("Gender", ["Male", "Female"])
-
     num_products = st.number_input("Products", 1, 4, 1)
     has_card = st.selectbox("Has Credit Card", [0, 1])
     is_active = st.selectbox("Active Member", [0, 1])
@@ -136,11 +135,15 @@ if st.button("🔍 Predict Now"):
         "EstimatedSalary": [salary]
     })
 
-    prediction = model.predict(input_data)
+    try:
+        prediction = model.predict(input_data)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    if prediction[0] == 1:
-        st.markdown('<div class="error-box">❌ High Risk: Customer will EXIT</div>', unsafe_allow_html=True)
-    else:
-        st.markdown('<div class="success-box">✅ Low Risk: Customer will STAY</div>', unsafe_allow_html=True)
+        if prediction[0] == 1:
+            st.markdown('<div class="error-box">❌ High Risk: Customer will EXIT</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="success-box">✅ Low Risk: Customer will STAY</div>', unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error(f"Prediction error: {e}")
